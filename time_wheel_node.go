@@ -19,6 +19,7 @@ const (
 // 先使用sync.Mutex实现功能
 // 后面使用cas优化
 type Time struct {
+	version uint64
 	timeNode
 	sync.Mutex
 
@@ -27,7 +28,6 @@ type Time struct {
 	// level 在near盘子里就是1, 在T2ToTt[0]盘子里就是2起步
 	// index 就是各自盘子的索引值
 	// seq   自增id
-	version uint64
 }
 
 func newTimeHead(level uint64, index uint64) *Time {
@@ -57,10 +57,10 @@ func (t *Time) lockPushBack(node *timeNode, level uint64, index uint64) {
 type timeNode struct {
 	expire     uint64
 	userExpire time.Duration
+	version    uint64 //保存节点版本信息
 	callback   func()
 	stop       uint32
 	list       unsafe.Pointer //存放表头信息
-	version    uint64         //保存节点版本信息
 	isSchedule bool
 	root       *timeWheel
 	list.Head
